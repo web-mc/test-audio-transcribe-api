@@ -1,0 +1,26 @@
+# Игнорируем Python кэши
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Локальные виртуальные окружения
+venv/
+.venv/
+.env
+.env.*
+
+# Git и прочее
+.git
+.gitignore
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.swp
+
+.junk
+.mypy_cache
+compose.override.yml
+docker/*
+!docker/fastapi/app.sh

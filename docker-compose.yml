@@ -1,0 +1,15 @@
+services:
+
+  fastapi:
+    image: fastapi_ai_test
+    build:
+      context: ./
+      dockerfile: docker/fastapi/Dockerfile
+    container_name: fastapi_ai_test
+    env_file:
+      - ./docker/fastapi/fastapi.env
+
+    command: ["/fastapi/docker/fastapi/app.sh"]
+    ports:
+      - 8000:8000
+    restart: unless-stopped

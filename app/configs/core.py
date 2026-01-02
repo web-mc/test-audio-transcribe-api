@@ -1,0 +1,38 @@
+# -*- coding: utf-8 -*-
+import logging
+from pathlib import Path
+from socket import gethostbyname, gethostname
+from typing import Annotated
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class BaseConfig(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file_encoding="utf-8",
+        extra="ignore",
+        frozen=True,
+    )
+
+
+class AppSettings(BaseConfig):
+    app_dir: Annotated[Path, Field(default=Path(__file__).parents[1])]
+    production: Annotated[bool, Field(default=False)]
+
+    @property
+    def loglevel(self) -> int:
+        return logging.INFO if self.production else logging.DEBUG
+
+
+app_settings = AppSettings()  # type: ignore
+
+
+class GunicornSettings(BaseConfig):
+    hostname: str = gethostname()
+    host: str = gethostbyname(hostname) if Path("/.dockerenv").exists() else "127.0.0.1"
+    port: Annotated[int, Field(alias="API_PORT", default=5050)]
+    reload: bool = not app_settings.production
+
+
+gunicorn_settings = GunicornSettings()  # type: ignore

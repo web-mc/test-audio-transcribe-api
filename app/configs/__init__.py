@@ -1,1 +1,1 @@
-from .core import app_settings
+from .core import app_settings, gunicorn_settings

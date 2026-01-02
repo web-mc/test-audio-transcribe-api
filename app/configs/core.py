@@ -20,6 +20,9 @@ class AppSettings(BaseConfig):
     app_dir: Annotated[Path, Field(default=Path(__file__).parents[1])]
     production: Annotated[bool, Field(default=False)]
 
+    allowed_extensions: Annotated[tuple, Field(default=(".mp3", ".wav"))]
+    max_file_size: Annotated[int, Field(default=10 * 1024 * 1024)]  # 10 MB
+
     @property
     def loglevel(self) -> int:
         return logging.INFO if self.production else logging.DEBUG

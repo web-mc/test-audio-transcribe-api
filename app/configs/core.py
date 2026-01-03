@@ -17,7 +17,7 @@ class BaseConfig(BaseSettings):
 
 
 class AppSettings(BaseConfig):
-    app_dir: Path = Path(__file__).parents[1]
+    app_dir: Path = Path.cwd()
     log_dir: Path = app_dir / "logs"
     production: Annotated[bool, Field(default=False)]
 

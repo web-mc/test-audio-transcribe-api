@@ -7,3 +7,5 @@ wheels/
 .venv
 read.txt
 compose.override.yml
+logs/
+uploads/

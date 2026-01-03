@@ -3,10 +3,10 @@ FROM python:3.13-slim AS builder
 
 WORKDIR /build
 
-COPY pyproject.toml uv.lock* ./
-
 RUN pip install --no-cache-dir uv
-RUN uv sync --frozen --no-install-project
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev  --no-install-project
 
 
 # Приложение

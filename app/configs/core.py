@@ -70,3 +70,24 @@ class DatabaseSettings(BaseConfig):
 
 
 db_settings = DatabaseSettings()  # type: ignore
+
+
+class RabbitMQSettings(BaseConfig):
+    user: Annotated[str, Field()]
+    password: Annotated[SecretStr, Field(alias="RABBITMQ_DEFAULT_PASS")]
+    vhost: Annotated[str, Field(default="vhost")]
+    host: Annotated[str, Field()]
+    port: Annotated[int, Field(default=5672)]
+
+    @cached_property
+    def broker_url(cls) -> str:
+        return f"amqp://{cls.user}:{cls.password.get_secret_value()}@{cls.host}:{cls.port}/{cls.vhost}"
+
+    class Config:
+        env_prefix = "RABBITMQ_DEFAULT_"
+
+
+rabbitmq_settings = RabbitMQSettings()  # type: ignore
+
+
+result_backend = db_settings.conn_string._replace(drivername="db+postgresql")

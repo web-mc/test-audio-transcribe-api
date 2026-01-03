@@ -1,7 +1,6 @@
-version: "3.9"
-
 volumes:
   postgres_data:
+  rabbitmq_data:
 
 services:
   fastapi:
@@ -13,12 +12,14 @@ services:
     env_file:
       - docker/fastapi/fastapi.env
       - docker/postgres/postgres.env
+      - docker/rabbitmq/rabbitmq.env
     command: ["/fastapi/docker/fastapi/app.sh"]
     ports:
       - "8000:8000"
     restart: unless-stopped
     depends_on:
       - postgres
+      - celery
 
   postgres:
     container_name: test_postgres
@@ -30,3 +31,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+
+  rabbitmq:
+    container_name: test_rabbitmq
+    image: rabbitmq:4-management-alpine
+    env_file:
+      - docker/rabbitmq/rabbitmq.env
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Web UI
+    volumes:
+      - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - rabbitmq_data:/var/lib/rabbitmq/mnesia
+    restart: unless-stopped
+
+  celery:
+    container_name: test_celery
+    image: test_celery
+    build:
+      context: ./
+      dockerfile: docker/fastapi/Dockerfile
+    command: sh -c "uv run celery --app=app.celery_app.celery_app:celery_app worker -l INFO -c 2"
+    env_file:
+      - docker/fastapi/fastapi.env
+      - docker/postgres/postgres.env
+      - docker/rabbitmq/rabbitmq.env
+    depends_on:
+      - postgres
+      - rabbitmq
+
+
+    restart: unless-stopped
+
+  flower:
+    container_name: test_flower
+    image: test_flower
+    build:
+      context: ./
+      dockerfile: docker/fastapi/Dockerfile
+    command: sh -c "uv run celery --app=app.celery_app.celery_app:celery_app flower"
+    env_file:
+      - docker/fastapi/fastapi.env
+      - docker/postgres/postgres.env
+      - docker/rabbitmq/rabbitmq.env
+    ports:
+      - "5555:5555"
+    restart: unless-stopped
+    depends_on:
+      - celery

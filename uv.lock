@@ -572,7 +572,7 @@ dev = [
 requires-dist = [
     { name = "aiofiles", specifier = "==25.1.0" },
     { name = "alembic", specifier = "==1.17.2" },
-    { name = "asyncpg", specifier = ">=0.31.0" },
+    { name = "asyncpg", specifier = "==0.31.0" },
     { name = "fastapi", specifier = "==0.128.0" },
     { name = "gunicorn", specifier = "==23.0.0" },
     { name = "pydantic-settings", specifier = "==2.7.1" },

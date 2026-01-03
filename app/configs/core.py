@@ -19,8 +19,8 @@ class BaseConfig(BaseSettings):
 
 
 class AppSettings(BaseConfig):
-    app_dir: Path = Path.cwd()
-    log_dir: Path = app_dir / "logs"
+    app_dir: Path = Path(__file__).parents[2]
+    log_dir: Path = Path(__file__).parents[1] / "logs"
     production: Annotated[bool, Field(default=False)]
 
     allowed_extensions: Annotated[tuple, Field(default=(".mp3", ".wav"))]

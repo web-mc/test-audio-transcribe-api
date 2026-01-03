@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, status
 from fastapi.responses import JSONResponse
 
+from app.repositories import TranscriptionsRepo
 from app.storages import LocalStorage
 
 from .dependencies import validate_audio_file
@@ -19,15 +20,36 @@ async def add_transcription(
     file_path = await LocalStorage.save_audio(audio_file)
 
     # 2 записываем в БД данные файла
+    transcription_id = await TranscriptionsRepo.add_one({"file_path": file_path})
+
     # 3 Запускем селери задачу, передать IDшники файла в БД и задания
     # 4 Возвращаем её ID клиенту в ответе и статус ACCEPTED
 
     return JSONResponse(
-        content={"file_path": file_path},
+        content={"transcription_id": transcription_id},
         status_code=status.HTTP_202_ACCEPTED,
     )
 
 
-@transcriptions.get("/{transcription_id}")
-def get_transcription(transcription_id: int) -> dict[str, str]:
-    return {"transcribe": "transcribe"}
+@transcriptions.get("/{tid}")
+async def get_transcription(tid: int) -> JSONResponse:
+    """
+    Получает конкретную расшифровку по ID.
+
+    Args:
+        tid (int): transcription_id
+    """
+    res = await TranscriptionsRepo.find_one(id=tid)
+    if not res:
+        return JSONResponse(
+            content={"detail": "Transcription not found"},
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    return JSONResponse(
+        content={
+            "transcription_id": res.id,
+            "file_path": res.file_path,
+        },
+        status_code=status.HTTP_200_OK,
+    )

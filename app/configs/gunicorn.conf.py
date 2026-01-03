@@ -1,6 +1,6 @@
 import multiprocessing
 
-from app.configs.core import app_settings, gunicorn_settings
+from app.configs import LOGGING_CONFIG, app_settings, gunicorn_settings
 
 proc_name = "fastapi"
 
@@ -12,3 +12,5 @@ loglevel = "info" if app_settings.production else "debug"
 worker_class = "uvicorn.workers.UvicornWorker"
 workers = multiprocessing.cpu_count() * 2 + 1 if app_settings.production else 2
 reload = gunicorn_settings.reload
+
+logconfig_dict = LOGGING_CONFIG

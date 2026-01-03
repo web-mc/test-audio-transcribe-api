@@ -9,7 +9,7 @@ async def validate_audio_file(
             f"Allowed extensions: {', '.join(app_settings.allowed_extensions)}. "
             f"Max size: {app_settings.max_file_size // (1024 * 1024)} MB."
         ),
-        example="example.mp3",
+        examples=["example.mp3"],
     ),
 ) -> UploadFile:
     if not audio_file.filename:

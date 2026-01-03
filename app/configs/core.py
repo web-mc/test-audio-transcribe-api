@@ -17,7 +17,8 @@ class BaseConfig(BaseSettings):
 
 
 class AppSettings(BaseConfig):
-    app_dir: Annotated[Path, Field(default=Path(__file__).parents[1])]
+    app_dir: Path = Path(__file__).parents[1]
+    log_dir: Path = app_dir / "logs"
     production: Annotated[bool, Field(default=False)]
 
     allowed_extensions: Annotated[tuple, Field(default=(".mp3", ".wav"))]
@@ -33,8 +34,8 @@ app_settings = AppSettings()  # type: ignore
 
 class GunicornSettings(BaseConfig):
     hostname: str = gethostname()
-    host: str = gethostbyname(hostname) if Path("/.dockerenv").exists() else "127.0.0.1"
-    port: Annotated[int, Field(alias="API_PORT", default=5050)]
+    host: str = gethostbyname(hostname)
+    port: Annotated[int, Field(alias="API_PORT", default=8000)]
     reload: bool = not app_settings.production
 
 

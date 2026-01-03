@@ -13,3 +13,4 @@ app = FastAPI(
 app.include_router(router_v1)
 
 print(app_settings)
+

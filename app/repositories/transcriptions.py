@@ -4,4 +4,4 @@ from .base_sqlalchemy_repo import SQLAlchemyRepository
 
 
 class TranscriptionsRepo(SQLAlchemyRepository):
-    model = Transcriptions
+    model = Transcriptions  # type: ignore[assignment]

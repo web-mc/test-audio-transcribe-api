@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.repositories import TranscriptionsRepo
 from app.storages import LocalStorage
@@ -53,3 +53,15 @@ async def get_transcription(tid: int) -> JSONResponse:
         },
         status_code=status.HTTP_200_OK,
     )
+
+
+@transcriptions.delete("/{tid}")
+async def del_transcription(tid: int) -> Response:
+    res = await TranscriptionsRepo.delete_one(id=tid)
+    if res is None:
+        return JSONResponse(
+            content={"detail": "Transcription not found"},
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

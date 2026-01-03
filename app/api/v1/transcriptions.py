@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, UploadFile, status
 from fastapi.responses import JSONResponse, Response
 
-from app.celery_app.celery_app import celery_app
-from app.celery_app.tasks.transcriptions import transcribe_audio
 from app.repositories import TranscriptionsRepo
 from app.storages import LocalStorage
 
@@ -22,22 +20,13 @@ async def add_transcription(
     file_path = await LocalStorage.save_audio(audio_file)
 
     # 2 записываем в БД данные файла
-    tid = await TranscriptionsRepo.add_one({"file_path": file_path})
+    transcription_id = await TranscriptionsRepo.add_one({"file_path": file_path})
 
     # 3 Запускем селери задачу, передать IDшники файла в БД и задания
-    transcribe_audio.apply_async(
-        kwargs={
-            "file_path": file_path,
-            "transcription_id": tid,
-        },
-        task_id=f"transcribe:{tid}",
-    )
+    # 4 Возвращаем её ID клиенту в ответе и статус ACCEPTED
 
     return JSONResponse(
-        content={
-            "transcription_id": tid,
-            "status": "STARTED",
-        },
+        content={"transcription_id": transcription_id},
         status_code=status.HTTP_202_ACCEPTED,
     )
 
@@ -50,29 +39,6 @@ async def get_transcription(tid: int) -> JSONResponse:
     Args:
         tid (int): transcription_id
     """
-    # Сначала проверяем в селери готово ли таска
-    result = celery_app.AsyncResult(f"transcribe:{tid}")
-    if result.state in ("PENDING", "STARTED"):
-        return JSONResponse(
-            content={
-                "transcription_id": tid,
-                "status": result.state,
-            },
-            status_code=status.HTTP_200_OK,
-        )
-
-    if result.state == "FAILURE":
-        return JSONResponse(
-            content={
-                "transcription_id": tid,
-                "status": result.state,
-                "error": str(result.result),
-            },
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-    # SUCCESS
-    # потом идум в БД за результатами транскрибации
     res = await TranscriptionsRepo.find_one(id=tid)
     if not res:
         return JSONResponse(
@@ -83,8 +49,7 @@ async def get_transcription(tid: int) -> JSONResponse:
     return JSONResponse(
         content={
             "transcription_id": res.id,
-            "status": result.state,
-            "transcription": res.transcription,
+            "file_path": res.file_path,
         },
         status_code=status.HTTP_200_OK,
     )

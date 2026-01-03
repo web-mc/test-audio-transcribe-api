@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api import router_v1
+from app.configs import app_settings
 
 app = FastAPI(
     title="AI Audio",
@@ -10,3 +11,6 @@ app = FastAPI(
 )
 
 app.include_router(router_v1)
+
+print(app_settings)
+

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
+from functools import cached_property
 from pathlib import Path
 from socket import gethostbyname, gethostname
 from typing import Annotated
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import URL
 
 
 class BaseConfig(BaseSettings):
@@ -40,3 +42,31 @@ class GunicornSettings(BaseConfig):
 
 
 gunicorn_settings = GunicornSettings()  # type: ignore
+
+
+class DatabaseSettings(BaseConfig):
+    user: Annotated[str, Field()]
+    password: Annotated[SecretStr, Field()]
+    host: Annotated[str, Field()]
+    port: Annotated[int, Field(default=5432)]
+    db_schema: Annotated[str, Field(alias="POSTGRES_SCHEMA", default="public")]
+    db_name: Annotated[str, Field(alias="POSTGRES_DB")]
+
+    @cached_property
+    def conn_string(cls) -> URL:
+        conn_string = URL.create(
+            drivername="postgresql+asyncpg",
+            username=cls.user,
+            password=cls.password.get_secret_value(),
+            database=cls.db_name,
+            host=cls.host,
+            port=cls.port,
+        )
+
+        return conn_string
+
+    class Config:
+        env_prefix = "POSTGRES_"
+
+
+db_settings = DatabaseSettings()  # type: ignore

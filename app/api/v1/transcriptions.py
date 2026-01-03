@@ -29,5 +29,5 @@ async def add_transcription(
 
 
 @transcriptions.get("/{transcription_id}")
-def get_transcribtion(transcription_id: int) -> dict[str, str]:
+def get_transcription(transcription_id: int) -> dict[str, str]:
     return {"transcribe": "transcribe"}

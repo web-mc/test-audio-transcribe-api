@@ -1,15 +1,32 @@
-services:
+version: "3.9"
 
+volumes:
+  postgres_data:
+
+services:
   fastapi:
-    image: fastapi_ai_test
+    container_name: test_fastapi
+    image: test_fastapi
     build:
       context: ./
       dockerfile: docker/fastapi/Dockerfile
-    container_name: fastapi_ai_test
     env_file:
-      - ./docker/fastapi/fastapi.env
-
+      - docker/fastapi/fastapi.env
+      - docker/postgres/postgres.env
     command: ["/fastapi/docker/fastapi/app.sh"]
     ports:
-      - 8000:8000
+      - "8000:8000"
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: test_postgres
+    image: postgres:17
+    env_file:
+      - docker/postgres/postgres.env
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped

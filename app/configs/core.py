@@ -19,7 +19,7 @@ class BaseConfig(BaseSettings):
 
 
 class AppSettings(BaseConfig):
-    app_dir: Path = Path(__file__).parents[2]
+    app_dir: Path = Path(__file__).parents[1]
     log_dir: Path = Path(__file__).parents[1] / "logs"
     production: Annotated[bool, Field(default=False)]
 
@@ -74,7 +74,9 @@ db_settings = DatabaseSettings()  # type: ignore
 
 class RabbitMQSettings(BaseConfig):
     user: Annotated[str, Field(default="guest")]
-    password: Annotated[SecretStr, Field(alias="RABBITMQ_DEFAULT_PASS", default=SecretStr("guest"))]
+    password: Annotated[
+        SecretStr, Field(alias="RABBITMQ_DEFAULT_PASS", default=SecretStr("guest"))
+    ]
     vhost: Annotated[str, Field(default="vhost")]
     host: Annotated[str, Field(default="localhost")]
     port: Annotated[int, Field(default=5672)]
@@ -90,4 +92,14 @@ class RabbitMQSettings(BaseConfig):
 rabbitmq_settings = RabbitMQSettings()  # type: ignore
 
 
-result_backend = db_settings.conn_string._replace(drivername="db+postgresql")
+class AiSettings(BaseConfig):
+    base_url: Annotated[str, Field()]
+    api_key: Annotated[SecretStr, Field()]
+    audio_model: Annotated[str, Field()]
+    text_model: Annotated[str, Field()]
+
+    class Config:
+        env_prefix = "AI_"
+
+
+ai_settings = AiSettings()  # type: ignore

@@ -14,3 +14,7 @@ class AbstractRepository(ABC):
     @abstractmethod
     async def delete_one(self, **filter_by) -> int | None:
         pass
+
+    @abstractmethod
+    async def update_one(self, id: int, data: dict) -> None:
+        pass

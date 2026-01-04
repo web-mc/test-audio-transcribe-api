@@ -1,7 +1,8 @@
 from fastapi import Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.configs import app_settings
+from app.ai_clients import AiClientABC, OpenAiClient
+from app.configs import ai_settings, app_settings
 from app.db import get_async_session
 from app.models import Transcriptions
 from app.repositories.transcriptions import TranscriptionsRepo
@@ -41,8 +42,18 @@ def get_transcriptions_storage() -> StorageABC:
     return LocalStorage()
 
 
+def get_ai_client() -> AiClientABC:
+    return OpenAiClient(
+        str(ai_settings.base_url),
+        ai_settings.api_key.get_secret_value(),
+        ai_settings.text_model,
+        ai_settings.audio_model,
+    )
+
+
 def get_transcription_service(
     repo: TranscriptionsRepo = Depends(get_transcriptions_repo),
     storage: StorageABC = Depends(get_transcriptions_storage),
+    ai_client: AiClientABC = Depends(get_ai_client),
 ) -> TranscriptionService:
-    return TranscriptionService(repo, storage)
+    return TranscriptionService(repo, storage, ai_client)

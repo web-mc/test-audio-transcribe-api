@@ -26,3 +26,6 @@ class LocalStorage(StorageABC):
 
     def extract_filename_from_path(self, file_path: str) -> str:
         return Path(file_path).name
+
+    def delete_audio(self, file_path: str) -> None:
+        Path(file_path).unlink(missing_ok=True)

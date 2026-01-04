@@ -5,6 +5,7 @@ from app.dependencies.transcriptions import (
     get_transcription_service,
     validate_audio_file,
 )
+from app.schemas.questions import QuestionRequest, QuestionResponse
 from app.schemas.transcriptions import TranscriptionRead
 from app.services.transcriptions import TranscriptionService
 
@@ -53,3 +54,21 @@ async def del_transcription(
         )
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@transcriptions.post(
+    "/{tid}/questions",
+    response_model=QuestionResponse,
+    summary="Задать вопрос по содержанию аудио.",
+)
+async def ask_question(
+    tid: int,
+    question_body: QuestionRequest,
+    service: TranscriptionService = Depends(get_transcription_service),
+):
+    answer = await service.ask_question(tid, question_body.question)
+    return {
+        "transcription_id": tid,
+        "question": question_body.question,
+        "answer": answer,
+    }

@@ -1,4 +1,5 @@
 from logging import getLogger
+from pathlib import Path
 from typing import NoReturn
 
 from openai import AsyncOpenAI, OpenAIError
@@ -25,7 +26,7 @@ class OpenAiClient(AiClientABC):
             base_url=self.base_url,
         )
 
-    async def process_audio(self, audio) -> str:
+    async def process_audio(self, audio_path: Path) -> str:
         """
         Получает на вход аудио файл и отправляет его на транскрибацию.
         Возвращает текстовую расшифровку.
@@ -33,15 +34,15 @@ class OpenAiClient(AiClientABC):
         try:
             transcription = await self.client.audio.transcriptions.create(
                 model=self.audio_model,
-                file=audio,
+                file=audio_path,
             )
             return transcription.text.strip()
         except Exception as e:
             self.__error_handler(e, "Ошибка при транскрибации аудио")
 
-    async def ask_question(self, question: str, trancription: str) -> str | None:
+    async def ask_question(self, question: str, transcription: str) -> str | None:
         messages: list[ChatCompletionMessageParam] = [
-            {"role": "system", "content": trancription},
+            {"role": "system", "content": transcription},
             {"role": "user", "content": question},
         ]
         try:
@@ -61,4 +62,4 @@ class OpenAiClient(AiClientABC):
             msg = f"Неизвестная ошибка:  {msg}."
 
         logger.error(msg)
-        raise RuntimeError(msg)
+        raise RuntimeError(msg) from e

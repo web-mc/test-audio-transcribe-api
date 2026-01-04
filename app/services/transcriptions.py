@@ -73,15 +73,17 @@ class TranscriptionService:
 
     async def delete_transcription(self, tid: int) -> int | None:
         async with self.repo.session.begin():
+            audio = await self.repo.find_one(id=tid)
             res = await self.repo.delete_one(id=tid)
-        return res
+            self.storage.delete_audio(audio.file_path)  # type: ignore[union-attr]
+            return res
 
     async def transcribe_audio(self, tid: int) -> None:
         # 1 получаем данные по ID БД, если там есть расшифровка уже, то завершаем таску
         async with self.repo.session.begin():
             audio = await self.repo.find_one(id=tid)
-        if not audio or audio.transcription:
-            return
+            if not audio or audio.transcription:
+                return
 
         # 2 Отправляем запрос в Сервис расшифровки на расшифровку аудио
         transcription = await self.ai_client.process_audio(Path(audio.file_path))
@@ -90,3 +92,13 @@ class TranscriptionService:
         async with self.repo.session.begin():
             data = {"transcription": transcription}
             await self.repo.update_one(audio.id, data)  # type: ignore[attr-defined]
+
+    async def ask_question(self, tid: int, question: str) -> str | None:
+        async with self.repo.session.begin():
+            audio = await self.repo.find_one(id=tid)
+
+        if not audio or not audio.transcription:
+            return "Аудио отуствует или расшифровка не готова."
+
+        answer = await self.ai_client.ask_question(question, audio.transcription)
+        return answer

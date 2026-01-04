@@ -21,7 +21,7 @@ class SQLAlchemyRepository(AbstractRepository):
         try:
             query = insert(self.model).values(data).returning(self.model.id)  # type: ignore[attr-defined]
             result = await self.session.execute(query)
-            await self.session.commit()
+            await self.session.flush()
             return result.scalar_one()
         except (SQLAlchemyError, Exception) as e:
             self.__error_handler(e, "невозможно вставить данные в таблицу")
@@ -61,4 +61,4 @@ class SQLAlchemyRepository(AbstractRepository):
             msg = f"Неизвестная ошибка:  {msg}."
 
         logger.error(msg)
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, msg)
+        raise RuntimeError(msg) from e

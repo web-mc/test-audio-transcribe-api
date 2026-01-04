@@ -20,3 +20,7 @@ class StorageABC(ABC):
     @abstractmethod
     def extract_filename_from_path(self, file_path: str) -> str:
         pass
+
+    @abstractmethod
+    def delete_audio(self, file_path: str) -> None:
+        pass

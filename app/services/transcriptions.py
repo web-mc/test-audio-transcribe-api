@@ -63,3 +63,7 @@ class TranscriptionService:
 
         result["transcription"] = audio.transcription
         return result
+
+    async def delete_transcription(self, tid: int) -> int | None:
+        res = await self.repo.delete_one(id=tid)
+        return res

@@ -45,7 +45,7 @@ async def del_transcription(
     tid: int,
     service: TranscriptionService = Depends(get_transcription_service),
 ) -> Response:
-    res = await service.repo.delete_one(id=tid)
+    res = await service.delete_transcription(tid)
     if res is None:
         return JSONResponse(
             content={"detail": "Transcription not found"},

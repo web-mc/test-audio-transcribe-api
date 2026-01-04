@@ -75,7 +75,11 @@ class TranscriptionService:
         async with self.repo.session.begin():
             audio = await self.repo.find_one(id=tid)
             res = await self.repo.delete_one(id=tid)
-            self.storage.delete_audio(audio.file_path)  # type: ignore[union-attr]
+
+            other_audio = await self.repo.find_one(file_path=audio.file_path)  # type: ignore[union-attr]
+            # удаляем сам файл если больше нет с ним расшифровок.
+            if not other_audio:
+                self.storage.delete_audio(audio.file_path)  # type: ignore[union-attr]
             return res
 
     async def transcribe_audio(self, tid: int) -> None:

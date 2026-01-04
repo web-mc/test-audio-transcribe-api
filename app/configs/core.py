@@ -24,7 +24,7 @@ class AppSettings(BaseConfig):
     production: Annotated[bool, Field(default=False)]
 
     allowed_extensions: Annotated[tuple, Field(default=(".mp3", ".wav"))]
-    max_file_size: Annotated[int, Field(default=10 * 1024 * 1024)]  # 10 MB
+    max_file_size: Annotated[int, Field(default=25 * 1024 * 1024)]  # 25 MB
 
     @property
     def loglevel(self) -> int:
@@ -45,12 +45,12 @@ gunicorn_settings = GunicornSettings()  # type: ignore
 
 
 class DatabaseSettings(BaseConfig):
-    user: Annotated[str, Field()]
-    password: Annotated[SecretStr, Field()]
-    host: Annotated[str, Field()]
+    user: Annotated[str, Field(default="postgres")]
+    password: Annotated[SecretStr, Field(default=SecretStr("postgres"))]
+    host: Annotated[str, Field(default="localhost")]
     port: Annotated[int, Field(default=5432)]
     db_schema: Annotated[str, Field(alias="POSTGRES_SCHEMA", default="public")]
-    db_name: Annotated[str, Field(alias="POSTGRES_DB")]
+    db_name: Annotated[str, Field(alias="POSTGRES_DB", default="postgres")]
 
     @cached_property
     def conn_string(cls) -> URL:
@@ -73,10 +73,10 @@ db_settings = DatabaseSettings()  # type: ignore
 
 
 class RabbitMQSettings(BaseConfig):
-    user: Annotated[str, Field()]
-    password: Annotated[SecretStr, Field(alias="RABBITMQ_DEFAULT_PASS")]
+    user: Annotated[str, Field(default="guest")]
+    password: Annotated[SecretStr, Field(alias="RABBITMQ_DEFAULT_PASS", default=SecretStr("guest"))]
     vhost: Annotated[str, Field(default="vhost")]
-    host: Annotated[str, Field()]
+    host: Annotated[str, Field(default="localhost")]
     port: Annotated[int, Field(default=5672)]
 
     @cached_property

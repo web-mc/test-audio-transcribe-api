@@ -37,9 +37,9 @@ services:
     image: rabbitmq:4-management-alpine
     env_file:
       - docker/rabbitmq/rabbitmq.env
-    ports:
-      - "5672:5672"     # AMQP
-      - "15672:15672"   # Web UI
+    # ports:
+    #   - "5672:5672"     # AMQP
+    #   - "15672:15672"   # Web UI
     volumes:
       - ./docker/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
       - rabbitmq_data:/var/lib/rabbitmq/mnesia

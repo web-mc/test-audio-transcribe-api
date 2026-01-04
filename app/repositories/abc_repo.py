@@ -3,17 +3,14 @@ from typing import Any
 
 
 class AbstractRepository(ABC):
-    @classmethod
     @abstractmethod
-    async def add_one(cls, data: dict) -> int:
+    async def add_one(self, data: dict) -> int:
         pass
 
-    @classmethod
     @abstractmethod
-    async def find_one(cls, **filter_by) -> Any | None:
+    async def find_one(self, **filter_by) -> Any | None:
         pass
 
-    @classmethod
     @abstractmethod
-    async def delete_one(cls, **filter_by) -> int | None:
+    async def delete_one(self, **filter_by) -> int | None:
         pass

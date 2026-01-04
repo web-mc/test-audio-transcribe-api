@@ -4,9 +4,8 @@ from fastapi import UploadFile
 
 
 class StorageABC(ABC):
-    @classmethod
     @abstractmethod
-    async def save_audio(cls, file: UploadFile) -> str:
+    async def save_audio(self, file: UploadFile) -> str:
         """
         Сохраняет загруженный аудиофайл в хранилище.
 
@@ -16,4 +15,8 @@ class StorageABC(ABC):
         Возвращает:
             str: Путь к сохраненному файлу.
         """
+        pass
+
+    @abstractmethod
+    def extract_filename_from_path(self, file_path: str) -> str:
         pass

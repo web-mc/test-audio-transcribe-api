@@ -1,1 +1,1 @@
-from .db import Base, async_session_maker
+from .db import Base, get_async_session

@@ -1,11 +1,11 @@
 from logging import getLogger
-from typing import Any
+from typing import Any, Type
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, insert, select
 from sqlalchemy.exc import SQLAlchemyError
-
-from app.db import async_session_maker
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import DeclarativeBase
 
 from .abc_repo import AbstractRepository
 
@@ -13,15 +13,16 @@ logger = getLogger(__name__)
 
 
 class SQLAlchemyRepository(AbstractRepository):
-    model = None
+    def __init__(self, session: AsyncSession, model: Type[DeclarativeBase]) -> None:
+        self.session = session
+        self.model = model
 
-    @classmethod
-    async def add_one(cls, data: dict) -> int:
+    async def add_one(self, data: dict) -> int:
         try:
-            query = insert(cls.model).values(data).returning(cls.model.id)  # type: ignore[arg-type,attr-defined]
-            async with async_session_maker() as session:
-                result = await session.execute(query)
-                await session.commit()
+            query = insert(self.model).values(data).returning(self.model.id)  # type: ignore[attr-defined]
+            async with self.session.begin():
+                result = await self.session.execute(query)
+                await self.session.commit()
                 return result.scalar_one()
         except (SQLAlchemyError, Exception) as e:
             msg = "невозможно вставить данные в таблицу"
@@ -33,20 +34,20 @@ class SQLAlchemyRepository(AbstractRepository):
             logger.error(msg)
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, msg)
 
-    @classmethod
-    async def find_one(cls, **filter_by) -> Any | None:
-        async with async_session_maker() as session:
-            stmt = select(cls.model).filter_by(**filter_by)  # type: ignore[call-overload]
-            res = await session.execute(stmt)
+    async def find_one(self, **filter_by) -> Any | None:
+        async with self.session.begin():
+            stmt = select(self.model).filter_by(**filter_by)
+            res = await self.session.execute(stmt)
             return res.scalar_one_or_none()
 
-    @classmethod
-    async def delete_one(cls, **filter_by) -> int | None:
+    async def delete_one(self, **filter_by) -> int | None:
         try:
-            async with async_session_maker() as session:
-                stmt = delete(cls.model).filter_by(**filter_by).returning(cls.model.id)  # type: ignore[arg-type,attr-defined]
-                result = await session.execute(stmt)
-                await session.commit()
+            async with self.session.begin():
+                stmt = (
+                    delete(self.model).filter_by(**filter_by).returning(self.model.id)  # type: ignore[attr-defined]
+                )
+                result = await self.session.execute(stmt)
+                await self.session.commit()
                 return result.scalar_one_or_none()
 
         except (SQLAlchemyError, Exception) as e:

@@ -16,7 +16,7 @@ services:
       - docker/rabbitmq/rabbitmq.env
     command: ["/fastapi/docker/fastapi/app.sh"]
     volumes:
-      - fastapi_data:fastapi/app
+      - fastapi_data:/fastapi/app/uploads
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -60,7 +60,7 @@ services:
       - docker/postgres/postgres.env
       - docker/rabbitmq/rabbitmq.env
     volumes:
-      - fastapi_data:fastapi/app
+      - fastapi_data:/fastapi/app/uploads
     depends_on:
       - postgres
       - rabbitmq

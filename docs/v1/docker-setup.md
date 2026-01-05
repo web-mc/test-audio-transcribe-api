@@ -45,6 +45,9 @@ docker-compose up -d --build
 # Остановка сервисов
 docker-compose down
 
+# Полное удаление
+docker compose down -v --rmi local --remove-orphans
+
 # Просмотр логов
 docker-compose logs -f fastapi
 docker-compose logs -f celery
